@@ -35,6 +35,7 @@ call plug#begin('~/.vim/plugged')
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-telescope/telescope-fzy-native.nvim'
     Plug 'neovim/nvim-lspconfig'
+    Plug 'mhartington/formatter.nvim'
     Plug 'vim-airline/vim-airline'
     Plug 'tpope/vim-vinegar'
     Plug 'tpope/vim-fugitive'
@@ -47,12 +48,18 @@ let g:completion_mathcing_strategy_list = ['exact', 'substring', 'fuzzy']
 
 " LSP Servers
 
+" haskell
 lua << EOF
     require'lspconfig'.hls.setup{}
 EOF
 
+" python
+lua << EOF
+    require'lspconfig'.pyright.setup{}
+EOF
 
 
+" Telescope Setup
 
 lua << EOF
 
@@ -85,7 +92,24 @@ require('telescope').setup {
 require('telescope').load_extension('fzy_native')
 EOF
 
+" Formatter.nvim
 
+lua << EOF
+require('formatter').setup({
+    filetype = {
+        python = {
+            -- Config for black
+            function()
+                return {
+                    exe = "black",
+                    args = {'-'},
+                    stdin = true,
+                }
+            end
+        }
+    }
+})
+EOF
 
 " remaps
 let mapleader = " "
@@ -95,3 +119,5 @@ nnoremap <leader>pf :lua require('telescope.builtin').find_files()<CR>
 
 nnoremap <leader>pb :lua require('telescope.builtin').buffers()<CR>
 nnoremap <leader>vh :lua require('telescope.builtin').help_tags()<CR>
+
+nnoremap <silent> <leader>f :Format<CR>
