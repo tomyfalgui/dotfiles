@@ -1,4 +1,5 @@
 syntax on
+filetype plugin on
 set encoding=UTF-8
 set exrc
 set guicursor=
@@ -7,8 +8,8 @@ set relativenumber
 set nohlsearch
 set hidden
 set noerrorbells
-set tabstop=4 softtabstop=4
-set shiftwidth=4
+set tabstop=2 softtabstop=2
+set shiftwidth=2
 set expandtab
 set smartindent
 set nowrap
@@ -20,7 +21,7 @@ set incsearch
 set termguicolors
 set scrolloff=8
 set noshowmode
-set completeopt=menuone,noinsert,noselect
+set completeopt=menuone,noinsert,noselect,menuone
 set signcolumn=yes
 set colorcolumn=80
 
@@ -31,10 +32,20 @@ set cmdheight=2
 set updatetime=50
 
 call plug#begin('~/.vim/plugged')
+    Plug 'preservim/nerdcommenter'
+    Plug 'jiangmiao/auto-pairs'
+    Plug 'fatih/vim-go'
+    Plug 'morhetz/gruvbox'
     Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-lua/popup.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-telescope/telescope-fzy-native.nvim'
     Plug 'neovim/nvim-lspconfig'
+    Plug 'hrsh7th/nvim-cmp'
+    Plug 'hrsh7th/cmp-nvim-lsp'
+    Plug 'hrsh7th/cmp-vsnip'
+    Plug 'hrsh7th/vim-vsnip'
+    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
     Plug 'mhartington/formatter.nvim'
     Plug 'vim-airline/vim-airline'
     Plug 'tpope/vim-vinegar'
@@ -42,21 +53,11 @@ call plug#begin('~/.vim/plugged')
     Plug 'ryanoasis/vim-devicons'
 call plug#end()
 
+colorscheme gruvbox
+
 let g:completion_mathcing_strategy_list = ['exact', 'substring', 'fuzzy']
 
 
-
-" LSP Servers
-
-" haskell
-lua << EOF
-    require'lspconfig'.hls.setup{}
-EOF
-
-" python
-lua << EOF
-    require'lspconfig'.pyright.setup{}
-EOF
 
 
 " Telescope Setup
@@ -106,10 +107,61 @@ require('formatter').setup({
                     stdin = true,
                 }
             end
-        }
+        },
     }
 })
 EOF
+
+" Format on save
+lua << EOF
+vim.api.nvim_exec([[
+    augroup FormatAutogroup
+        autocmd!
+        autocmd BufWritePost *.py FormatWrite
+    augroup END
+]], true)
+EOF
+
+
+" NVIM-CMP Setup
+lua << EOF
+    -- Setup nvim-cmp
+    local cmp = require'cmp'
+
+    cmp.setup({
+        snippet = {
+            expand = function(args)
+                vim.fn["vsnip#anonymous"](args.body)
+            end,
+
+        },
+        mapping = {
+            ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+            ['<C-f>'] = cmp.mapping.scroll_docs(4),
+            ['<C-space>'] = cmp.mapping.complete(),
+            ['<C-e>'] = cmp.mapping.close(),
+            ['<CR>'] = cmp.mapping.confirm({ select = true }),
+        },
+        sources = {
+            { name = 'nvim_lsp' },
+            { name = 'vsnip' },
+            { name = 'buffer'},
+        }
+    })
+
+    require'lspconfig'.hls.setup {
+        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+    }
+
+    require'lspconfig'.pyright.setup {
+        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+    }
+
+    require'lspconfig'.gopls.setup {
+        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+    }
+EOF
+
 
 " remaps
 let mapleader = " "
@@ -121,3 +173,4 @@ nnoremap <leader>pb :lua require('telescope.builtin').buffers()<CR>
 nnoremap <leader>vh :lua require('telescope.builtin').help_tags()<CR>
 
 nnoremap <silent> <leader>f :Format<CR>
+inoremap jk <ESC>
