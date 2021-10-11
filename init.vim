@@ -35,6 +35,7 @@ call plug#begin('~/.vim/plugged')
     Plug 'preservim/nerdcommenter'
     Plug 'jiangmiao/auto-pairs'
     Plug 'fatih/vim-go'
+    Plug 'prettier/vim-prettier', {'do': 'yarn install'}
     Plug 'morhetz/gruvbox'
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-lua/popup.nvim'
@@ -57,7 +58,8 @@ colorscheme gruvbox
 
 let g:completion_mathcing_strategy_list = ['exact', 'substring', 'fuzzy']
 
-
+let g:prettier#autoformat = 1
+let g:prettier#autoformat_require_pragma = 0
 
 
 " Telescope Setup
@@ -117,7 +119,7 @@ lua << EOF
 vim.api.nvim_exec([[
     augroup FormatAutogroup
         autocmd!
-        autocmd BufWritePost *.py FormatWrite
+        autocmd BufWritePost *.py, *.js FormatWrite
     augroup END
 ]], true)
 EOF
@@ -160,6 +162,11 @@ lua << EOF
     require'lspconfig'.gopls.setup {
         capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities()),
     }
+
+  require'lspconfig'.tsserver.setup{
+
+        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities()),
+  }
 EOF
 
 
@@ -174,3 +181,6 @@ nnoremap <leader>vh :lua require('telescope.builtin').help_tags()<CR>
 
 nnoremap <silent> <leader>f :Format<CR>
 inoremap jk <ESC>
+
+inoremap <expr> <TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
+inoremap <expr> <S-TAB> pumvisible() ? "\<C-p>" : "\<TAB>"
