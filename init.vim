@@ -35,31 +35,35 @@ call plug#begin('~/.vim/plugged')
     Plug 'preservim/nerdcommenter'
     Plug 'jiangmiao/auto-pairs'
     Plug 'fatih/vim-go'
-    Plug 'prettier/vim-prettier', {'do': 'yarn install'}
     Plug 'morhetz/gruvbox'
     Plug 'nvim-lua/plenary.nvim'
     Plug 'nvim-lua/popup.nvim'
     Plug 'nvim-telescope/telescope.nvim'
     Plug 'nvim-telescope/telescope-fzy-native.nvim'
-    Plug 'neovim/nvim-lspconfig'
-    Plug 'hrsh7th/nvim-cmp'
-    Plug 'hrsh7th/cmp-nvim-lsp'
-    Plug 'hrsh7th/cmp-vsnip'
-    Plug 'hrsh7th/vim-vsnip'
-    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
-    Plug 'mhartington/formatter.nvim'
     Plug 'vim-airline/vim-airline'
+    Plug 'sheerun/vim-polyglot'
+    Plug 'mattn/emmet-vim'
     Plug 'tpope/vim-vinegar'
     Plug 'tpope/vim-fugitive'
     Plug 'ryanoasis/vim-devicons'
+    Plug 'neoclide/coc.nvim', {'branch': 'release'}
+    Plug 'pangloss/vim-javascript'
+    Plug 'leafgarland/typescript-vim'
+    Plug 'peitalin/vim-jsx-typescript'
+    Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
+    Plug 'jparise/vim-graphql'
 call plug#end()
 
 colorscheme gruvbox
 
 let g:completion_mathcing_strategy_list = ['exact', 'substring', 'fuzzy']
-
 let g:prettier#autoformat = 1
 let g:prettier#autoformat_require_pragma = 0
+
+" coc
+let g:coc_global_extensions = ['coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier']
+
+imap <expr> <tab> emmet#expandAbbrIntelligent("\<tab>")
 
 
 " Telescope Setup
@@ -95,81 +99,6 @@ require('telescope').setup {
 require('telescope').load_extension('fzy_native')
 EOF
 
-" Formatter.nvim
-
-lua << EOF
-require('formatter').setup({
-    filetype = {
-        python = {
-            -- Config for black
-            function()
-                return {
-                    exe = "black",
-                    args = {'-'},
-                    stdin = true,
-                }
-            end
-        },
-    }
-})
-EOF
-
-" Format on save
-lua << EOF
-vim.api.nvim_exec([[
-    augroup FormatAutogroup
-        autocmd!
-        autocmd BufWritePost *.py, *.js FormatWrite
-    augroup END
-]], true)
-EOF
-
-
-" NVIM-CMP Setup
-lua << EOF
-    -- Setup nvim-cmp
-    local cmp = require'cmp'
-
-    cmp.setup({
-        snippet = {
-            expand = function(args)
-                vim.fn["vsnip#anonymous"](args.body)
-            end,
-
-        },
-        mapping = {
-            ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-            ['<C-f>'] = cmp.mapping.scroll_docs(4),
-            ['<C-space>'] = cmp.mapping.complete(),
-            ['<C-e>'] = cmp.mapping.close(),
-            ['<CR>'] = cmp.mapping.confirm({ select = true }),
-        },
-        sources = {
-            { name = 'nvim_lsp' },
-            { name = 'vsnip' },
-            { name = 'buffer'},
-        }
-    })
-
-    require'lspconfig'.hls.setup {
-        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
-    }
-
-    require'lspconfig'.pyright.setup {
-        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
-    }
-
-    require'lspconfig'.gopls.setup {
-        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities()),
-    }
-
-  require'lspconfig'.tsserver.setup{
-
-        capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities()),
-  }
-EOF
-
-
 " remaps
 let mapleader = " "
 nnoremap <leader>ps :lua require('telescope.builtin').grep_string({ search = vim.fn.input("Grep for >")})<CR>
@@ -179,7 +108,6 @@ nnoremap <leader>pf :lua require('telescope.builtin').find_files()<CR>
 nnoremap <leader>pb :lua require('telescope.builtin').buffers()<CR>
 nnoremap <leader>vh :lua require('telescope.builtin').help_tags()<CR>
 
-nnoremap <silent> <leader>f :Format<CR>
 inoremap jk <ESC>
 
 inoremap <expr> <TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
